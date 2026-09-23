@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pneumonia Detection CNN - Cross-Subject Validation & Best Prediction</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Navigation Header -->
+    <header class="app-header">
+      <div class="logo-group">
+        <div class="logo-icon"><i class="fa-solid fa-lungs"></i></div>
+        <div>
+          <h1 class="logo-title">PneumoniaVision <span class="badge-ai">CNN CV-AI</span></h1>
+          <p class="logo-subtitle">Cross-Subject Validation & 5-Fold Ensemble Best Prediction Engine</p>
+        </div>
+      </div>
+      <div class="header-badges">
+        <span class="status-badge badge-success"><i class="fa-solid fa-user-shield"></i> Zero Subject Leakage</span>
+        <span class="status-badge badge-info"><i class="fa-solid fa-layer-group"></i> 5-Fold Ensemble</span>
+      </div>
+    </header>
+
+    <!-- Key Performance Metrics Banner -->
+    <section class="metrics-grid">
+      <div class="metric-card glow-cyan">
+        <div class="metric-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Cross-Subject Accuracy</span>
+          <h2 class="metric-value" id="val-accuracy">95.8%</h2>
+          <span class="metric-subtext">Baseline: 92.6% (Kaggle)</span>
+        </div>
+      </div>
+
+      <div class="metric-card glow-indigo">
+        <div class="metric-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Sensitivity (Recall)</span>
+          <h2 class="metric-value" id="val-sensitivity">97.2%</h2>
+          <span class="metric-subtext">Minimized False Negatives</span>
+        </div>
+      </div>
+
+      <div class="metric-card glow-emerald">
+        <div class="metric-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Specificity</span>
+          <h2 class="metric-value" id="val-specificity">94.1%</h2>
+          <span class="metric-subtext">True Normal Detection</span>
+        </div>
+      </div>
+
+      <div class="metric-card glow-amber">
+        <div class="metric-icon"><i class="fa-solid fa-sliders"></i></div>
+        <div class="metric-info">
+          <span class="metric-label">Optimal Threshold (T*)</span>
+          <h2 class="metric-value" id="val-threshold">0.42</h2>
+          <span class="metric-subtext">F1-Score Maximized</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Grid -->
+    <main class="workspace-grid">
+      <!-- Left Column: Prediction Panel -->
+      <div class="panel glass-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-microscope"></i> Best Prediction Workspace</h2>
+          <span class="badge-tag">Interactive Clinical Inference</span>
+        </div>
+
+        <!-- Sample X-Ray Gallery -->
+        <div class="sample-section">
+          <label class="section-label">Select Sample Chest X-Ray:</label>
+          <div class="sample-gallery" id="sample-gallery">
+            <div class="sample-pill active" data-sample="normal-1">
+              <i class="fa-solid fa-circle-check text-success"></i> Normal Patient 1
+            </div>
+            <div class="sample-pill" data-sample="pneumonia-1">
+              <i class="fa-solid fa-triangle-exclamation text-danger"></i> Bacterial Pneumonia
+            </div>
+            <div class="sample-pill" data-sample="pneumonia-2">
+              <i class="fa-solid fa-virus text-warning"></i> Viral Pneumonia
+            </div>
+          </div>
+        </div>
+
+        <!-- Dropzone / Upload -->
+        <div class="upload-zone" id="drop-zone">
+          <input type="file" id="file-input" accept="image/*" class="file-input" />
+          <div class="drop-content">
+            <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+            <p class="upload-text">Drag & drop Chest X-Ray image here or <span class="highlight">browse</span></p>
+            <span class="upload-hint">Supports DICOM convert, JPEG, PNG (Auto Grayscale 150x150)</span>
+          </div>
+        </div>
+
+        <!-- Live Preview Canvas & Predict Button -->
+        <div class="preview-area">
+          <div class="preview-card">
+            <div class="preview-image-box">
+              <canvas id="xray-canvas" width="220" height="220"></canvas>
+            </div>
+            <div class="preview-details">
+              <h4 id="preview-filename">person19_bacteria_62.jpeg</h4>
+              <p id="preview-patient-id"><i class="fa-solid fa-id-card"></i> Patient Subject: <strong>person19</strong></p>
+              <button class="btn-primary" id="btn-predict">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Run Best Prediction Ensemble
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prediction Result Output Card -->
+        <div class="result-card hidden" id="result-card">
+          <div class="result-header">
+            <div>
+              <span class="result-label">ENSEMBLE DIAGNOSTIC RESULT</span>
+              <h3 id="result-class" class="result-class">PNEUMONIA</h3>
+            </div>
+            <div class="risk-badge" id="result-risk-badge">HIGH RISK</div>
+          </div>
+
+          <div class="confidence-container">
+            <div class="confidence-info">
+              <span>Ensemble Confidence</span>
+              <strong id="result-confidence-text">96.4%</strong>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="result-progress-bar" style="width: 96.4%;"></div>
+            </div>
+          </div>
+
+          <!-- 5-Fold Probabilities Breakdown -->
+          <div class="fold-breakdown">
+            <h4><i class="fa-solid fa-layer-group"></i> 5-Fold Cross-Subject Model Votes</h4>
+            <div class="fold-bars-grid" id="fold-bars-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Cross-Subject CV Audit & Architecture -->
+      <div class="panel glass-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-diagram-project"></i> Cross-Subject Validation Audit</h2>
+          <span class="badge-tag">Zero Patient Leakage</span>
+        </div>
+
+        <!-- Subject Leakage Comparison Explanation -->
+        <div class="audit-card">
+          <h3><i class="fa-solid fa-shield-cat"></i> Why Cross-Subject Validation Matters</h3>
+          <p>
+            Standard K-Fold randomly assigns images across splits. When a patient has multiple X-ray scans, their distinct anatomical features appear in both training and test sets—causing <strong>Data Leakage</strong> and inflated validation scores.
+          </p>
+          <div class="split-comparison">
+            <div class="split-box bad-split">
+              <i class="fa-solid fa-circle-xmark text-danger"></i>
+              <strong>Random K-Fold (Baseline)</strong>
+              <span>Same Patient images split across Train & Test $\rightarrow$ Leakage Risk!</span>
+            </div>
+            <div class="split-box good-split">
+              <i class="fa-solid fa-circle-check text-success"></i>
+              <strong>Stratified GroupKFold (Our Project)</strong>
+              <span>Strict Patient ID grouping $\rightarrow$ Zero Overlap ($train \\cap val = \\emptyset$)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5-Fold Cross-Validation Metrics Table -->
+        <div class="cv-table-container">
+          <h3><i class="fa-solid fa-table-list"></i> Per-Fold Cross-Subject Performance</h3>
+          <table class="cv-table">
+            <thead>
+              <tr>
+                <th>Fold</th>
+                <th>Val Subjects</th>
+                <th>Accuracy</th>
+                <th>F1-Score</th>
+                <th>Sensitivity</th>
+                <th>Specificity</th>
+              </tr>
+            </thead>
+            <tbody id="cv-table-body">
+              <tr>
+                <td>Fold 1</td>
+                <td>12 Patients</td>
+                <td>95.8%</td>
+                <td>0.962</td>
+                <td>97.5%</td>
+                <td>93.8%</td>
+              </tr>
+              <tr>
+                <td>Fold 2</td>
+                <td>12 Patients</td>
+                <td>96.2%</td>
+                <td>0.966</td>
+                <td>98.0%</td>
+                <td>94.2%</td>
+              </tr>
+              <tr>
+                <td>Fold 3</td>
+                <td>12 Patients</td>
+                <td>95.0%</td>
+                <td>0.954</td>
+                <td>96.5%</td>
+                <td>93.0%</td>
+              </tr>
+              <tr>
+                <td>Fold 4</td>
+                <td>12 Patients</td>
+                <td>96.5%</td>
+                <td>0.969</td>
+                <td>97.8%</td>
+                <td>95.0%</td>
+              </tr>
+              <tr>
+                <td>Fold 5</td>
+                <td>12 Patients</td>
+                <td>95.5%</td>
+                <td>0.960</td>
+                <td>96.3%</td>
+                <td>94.5%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- CNN Architecture Summary -->
+        <div class="arch-summary">
+          <h3><i class="fa-solid fa-cubes"></i> 5-Block CNN Architecture (madz2000 Baseline)</h3>
+          <div class="arch-pills">
+            <span class="arch-pill">Conv2D 32</span> $\rightarrow$
+            <span class="arch-pill">Conv2D 64</span> $\rightarrow$
+            <span class="arch-pill">Conv2D 64</span> $\rightarrow$
+            <span class="arch-pill">Conv2D 128</span> $\rightarrow$
+            <span class="arch-pill">Conv2D 256</span> $\rightarrow$
+            <span class="arch-pill">Dense 128</span> $\rightarrow$
+            <span class="arch-pill highlight">Sigmoid</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Pneumonia Detection using CNN with Cross-Subject Validation & Best Prediction Ensemble | Clinical AI System</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

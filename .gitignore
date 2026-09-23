@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.DS_Store
+.idea/
+.vscode/
+
+# Dataset and binary weights (can be re-generated or downloaded)
+data/
+*.pt
+*.h5
+*.pth
