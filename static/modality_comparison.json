@@ -1,0 +1,33 @@
+{
+  "metrics_comparison": [
+    {
+      "metric": "Accuracy",
+      "xray": "98.33%",
+      "ct_scan": "100.00%",
+      "winner": "CT Scan"
+    },
+    {
+      "metric": "Sensitivity (Recall)",
+      "xray": "100.00%",
+      "ct_scan": "100.00%",
+      "winner": "X-Ray"
+    },
+    {
+      "metric": "Specificity",
+      "xray": "95.00%",
+      "ct_scan": "100.00%",
+      "winner": "CT Scan"
+    },
+    {
+      "metric": "F1-Score",
+      "xray": "0.9882",
+      "ct_scan": "1.0000",
+      "winner": "CT Scan"
+    }
+  ],
+  "clinical_insights": [
+    "CT Scans provide 3D axial spatial resolution enabling detection of early Ground-Glass Opacities (GGO) prior to radiographic X-Ray visibility.",
+    "Chest X-Rays serve as the optimal first-line low-cost screening modality with zero 3D radiation overhead.",
+    "5-Fold Cross-Subject Validation eliminates patient anatomical memorization across both imaging modalities."
+  ]
+}

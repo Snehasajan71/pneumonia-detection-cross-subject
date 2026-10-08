@@ -1,8 +1,98 @@
 {
-  "total_images": 360,
-  "total_subjects": 60,
-  "cross_subject_verified": true,
-  "summary": {
+  "xray": {
+    "modality": "xray",
+    "fold_results": [
+      {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "auc": 1.0,
+        "tp": 48,
+        "tn": 24,
+        "fp": 0,
+        "fn": 0,
+        "fold": 1,
+        "num_train_subjects": 48,
+        "num_val_subjects": 12
+      },
+      {
+        "accuracy": 0.9166666666666666,
+        "precision": 0.8888888888888888,
+        "recall": 1.0,
+        "specificity": 0.75,
+        "f1": 0.9411764705882353,
+        "auc": 0.875,
+        "tp": 48,
+        "tn": 18,
+        "fp": 6,
+        "fn": 0,
+        "fold": 2,
+        "num_train_subjects": 48,
+        "num_val_subjects": 12
+      },
+      {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "auc": 1.0,
+        "tp": 48,
+        "tn": 24,
+        "fp": 0,
+        "fn": 0,
+        "fold": 3,
+        "num_train_subjects": 48,
+        "num_val_subjects": 12
+      },
+      {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "auc": 1.0,
+        "tp": 48,
+        "tn": 24,
+        "fp": 0,
+        "fn": 0,
+        "fold": 4,
+        "num_train_subjects": 48,
+        "num_val_subjects": 12
+      },
+      {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "specificity": 1.0,
+        "f1": 1.0,
+        "auc": 1.0,
+        "tp": 48,
+        "tn": 24,
+        "fp": 0,
+        "fn": 0,
+        "fold": 5,
+        "num_train_subjects": 48,
+        "num_val_subjects": 12
+      }
+    ],
+    "mean_accuracy": 0.9833333333333332,
+    "mean_f1": 0.9882352941176471,
+    "mean_sensitivity": 1.0,
+    "mean_specificity": 0.95,
+    "mean_auc": 0.975,
+    "optimal_threshold": {
+      "optimal_threshold": 0.69,
+      "f1": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "accuracy": 1.0
+    }
+  },
+  "ct_scan": {
+    "modality": "ct_scan",
     "fold_results": [
       {
         "accuracy": 1.0,
@@ -84,90 +174,46 @@
     "mean_f1": 1.0,
     "mean_sensitivity": 1.0,
     "mean_specificity": 1.0,
-    "mean_auc": 1.0
-  },
-  "optimal_threshold": {
-    "optimal_threshold": 0.48,
-    "f1": 1.0,
-    "precision": 1.0,
-    "recall": 1.0,
-    "accuracy": 1.0
-  },
-  "folds": [
-    {
-      "accuracy": 1.0,
+    "mean_auc": 1.0,
+    "optimal_threshold": {
+      "optimal_threshold": 0.35,
+      "f1": 1.0,
       "precision": 1.0,
       "recall": 1.0,
-      "specificity": 1.0,
-      "f1": 1.0,
-      "auc": 1.0,
-      "tp": 48,
-      "tn": 24,
-      "fp": 0,
-      "fn": 0,
-      "fold": 1,
-      "num_train_subjects": 48,
-      "num_val_subjects": 12
-    },
-    {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "specificity": 1.0,
-      "f1": 1.0,
-      "auc": 1.0,
-      "tp": 48,
-      "tn": 24,
-      "fp": 0,
-      "fn": 0,
-      "fold": 2,
-      "num_train_subjects": 48,
-      "num_val_subjects": 12
-    },
-    {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "specificity": 1.0,
-      "f1": 1.0,
-      "auc": 1.0,
-      "tp": 48,
-      "tn": 24,
-      "fp": 0,
-      "fn": 0,
-      "fold": 3,
-      "num_train_subjects": 48,
-      "num_val_subjects": 12
-    },
-    {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "specificity": 1.0,
-      "f1": 1.0,
-      "auc": 1.0,
-      "tp": 48,
-      "tn": 24,
-      "fp": 0,
-      "fn": 0,
-      "fold": 4,
-      "num_train_subjects": 48,
-      "num_val_subjects": 12
-    },
-    {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "specificity": 1.0,
-      "f1": 1.0,
-      "auc": 1.0,
-      "tp": 48,
-      "tn": 24,
-      "fp": 0,
-      "fn": 0,
-      "fold": 5,
-      "num_train_subjects": 48,
-      "num_val_subjects": 12
+      "accuracy": 1.0
     }
-  ]
+  },
+  "comparison": {
+    "metrics_comparison": [
+      {
+        "metric": "Accuracy",
+        "xray": "98.33%",
+        "ct_scan": "100.00%",
+        "winner": "CT Scan"
+      },
+      {
+        "metric": "Sensitivity (Recall)",
+        "xray": "100.00%",
+        "ct_scan": "100.00%",
+        "winner": "X-Ray"
+      },
+      {
+        "metric": "Specificity",
+        "xray": "95.00%",
+        "ct_scan": "100.00%",
+        "winner": "CT Scan"
+      },
+      {
+        "metric": "F1-Score",
+        "xray": "0.9882",
+        "ct_scan": "1.0000",
+        "winner": "CT Scan"
+      }
+    ],
+    "clinical_insights": [
+      "CT Scans provide 3D axial spatial resolution enabling detection of early Ground-Glass Opacities (GGO) prior to radiographic X-Ray visibility.",
+      "Chest X-Rays serve as the optimal first-line low-cost screening modality with zero 3D radiation overhead.",
+      "5-Fold Cross-Subject Validation eliminates patient anatomical memorization across both imaging modalities."
+    ]
+  }
 }
