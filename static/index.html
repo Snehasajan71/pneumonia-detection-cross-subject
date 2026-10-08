@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pneumonia Detection CNN - Cross-Subject Validation & Best Prediction</title>
+  <title>Multimodal Pneumonia AI - Chest X-Ray vs CT Scan (Cross-Subject CV)</title>
   
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,31 +23,40 @@
       <div class="logo-group">
         <div class="logo-icon"><i class="fa-solid fa-lungs"></i></div>
         <div>
-          <h1 class="logo-title">PneumoniaVision <span class="badge-ai">CNN CV-AI</span></h1>
-          <p class="logo-subtitle">Cross-Subject Validation & 5-Fold Ensemble Best Prediction Engine</p>
+          <h1 class="logo-title">PneumoniaVision <span class="badge-ai">Multimodal AI</span></h1>
+          <p class="logo-subtitle">Chest X-Ray vs. CT Scan Cross-Subject Validation & 5-Fold Ensemble Engine</p>
         </div>
       </div>
-      <div class="header-badges">
-        <span class="status-badge badge-success"><i class="fa-solid fa-user-shield"></i> Zero Subject Leakage</span>
-        <span class="status-badge badge-info"><i class="fa-solid fa-layer-group"></i> 5-Fold Ensemble</span>
+      
+      <!-- Modality Navigation Tabs -->
+      <div class="modality-tabs">
+        <button class="modality-btn active" data-modality="xray">
+          <i class="fa-solid fa-x-ray"></i> Chest X-Ray AI
+        </button>
+        <button class="modality-btn" data-modality="ct_scan">
+          <i class="fa-solid fa-circle-nodes"></i> Chest CT Scan AI
+        </button>
+        <button class="modality-btn comparison-tab" data-modality="comparison">
+          <i class="fa-solid fa-code-compare"></i> X-Ray vs CT Scan
+        </button>
       </div>
     </header>
 
     <!-- Key Performance Metrics Banner -->
-    <section class="metrics-grid">
+    <section class="metrics-grid" id="metrics-banner">
       <div class="metric-card glow-cyan">
         <div class="metric-icon"><i class="fa-solid fa-chart-line"></i></div>
         <div class="metric-info">
-          <span class="metric-label">Cross-Subject Accuracy</span>
+          <span class="metric-label" id="label-accuracy">X-Ray Accuracy</span>
           <h2 class="metric-value" id="val-accuracy">95.8%</h2>
-          <span class="metric-subtext">Baseline: 92.6% (Kaggle)</span>
+          <span class="metric-subtext" id="sub-accuracy">Cross-Subject 5-Fold CV</span>
         </div>
       </div>
 
       <div class="metric-card glow-indigo">
         <div class="metric-icon"><i class="fa-solid fa-heart-pulse"></i></div>
         <div class="metric-info">
-          <span class="metric-label">Sensitivity (Recall)</span>
+          <span class="metric-label" id="label-sensitivity">Sensitivity (Recall)</span>
           <h2 class="metric-value" id="val-sensitivity">97.2%</h2>
           <span class="metric-subtext">Minimized False Negatives</span>
         </div>
@@ -56,7 +65,7 @@
       <div class="metric-card glow-emerald">
         <div class="metric-icon"><i class="fa-solid fa-shield-halved"></i></div>
         <div class="metric-info">
-          <span class="metric-label">Specificity</span>
+          <span class="metric-label" id="label-specificity">Specificity</span>
           <h2 class="metric-value" id="val-specificity">94.1%</h2>
           <span class="metric-subtext">True Normal Detection</span>
         </div>
@@ -72,28 +81,20 @@
       </div>
     </section>
 
-    <!-- Main Workspace Grid -->
-    <main class="workspace-grid">
-      <!-- Left Column: Prediction Panel -->
+    <!-- Main Workspace Grid (Inference Mode) -->
+    <main class="workspace-grid" id="workspace-view">
+      <!-- Left Column: Best Prediction Panel -->
       <div class="panel glass-panel">
         <div class="panel-header">
-          <h2><i class="fa-solid fa-microscope"></i> Best Prediction Workspace</h2>
-          <span class="badge-tag">Interactive Clinical Inference</span>
+          <h2><i class="fa-solid fa-microscope"></i> <span id="workspace-title">Chest X-Ray Prediction</span></h2>
+          <span class="badge-tag" id="modality-tag">X-RAY ENSEMBLE</span>
         </div>
 
-        <!-- Sample X-Ray Gallery -->
+        <!-- Sample Image Gallery -->
         <div class="sample-section">
-          <label class="section-label">Select Sample Chest X-Ray:</label>
+          <label class="section-label">Select Sample Medical Image:</label>
           <div class="sample-gallery" id="sample-gallery">
-            <div class="sample-pill active" data-sample="normal-1">
-              <i class="fa-solid fa-circle-check text-success"></i> Normal Patient 1
-            </div>
-            <div class="sample-pill" data-sample="pneumonia-1">
-              <i class="fa-solid fa-triangle-exclamation text-danger"></i> Bacterial Pneumonia
-            </div>
-            <div class="sample-pill" data-sample="pneumonia-2">
-              <i class="fa-solid fa-virus text-warning"></i> Viral Pneumonia
-            </div>
+            <!-- Dynamic Sample Pills -->
           </div>
         </div>
 
@@ -102,7 +103,7 @@
           <input type="file" id="file-input" accept="image/*" class="file-input" />
           <div class="drop-content">
             <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-            <p class="upload-text">Drag & drop Chest X-Ray image here or <span class="highlight">browse</span></p>
+            <p class="upload-text">Drag & drop <span id="upload-modality-label">Chest X-Ray</span> image here or <span class="highlight">browse</span></p>
             <span class="upload-hint">Supports DICOM convert, JPEG, PNG (Auto Grayscale 150x150)</span>
           </div>
         </div>
@@ -111,7 +112,7 @@
         <div class="preview-area">
           <div class="preview-card">
             <div class="preview-image-box">
-              <canvas id="xray-canvas" width="220" height="220"></canvas>
+              <canvas id="medical-canvas" width="220" height="220"></canvas>
             </div>
             <div class="preview-details">
               <h4 id="preview-filename">person19_bacteria_62.jpeg</h4>
@@ -123,7 +124,7 @@
           </div>
         </div>
 
-        <!-- Prediction Result Output Card -->
+        <!-- Prediction Result Card -->
         <div class="result-card hidden" id="result-card">
           <div class="result-header">
             <div>
@@ -153,36 +154,35 @@
         </div>
       </div>
 
-      <!-- Right Column: Cross-Subject CV Audit & Architecture -->
+      <!-- Right Column: Cross-Subject CV Audit -->
       <div class="panel glass-panel">
         <div class="panel-header">
           <h2><i class="fa-solid fa-diagram-project"></i> Cross-Subject Validation Audit</h2>
           <span class="badge-tag">Zero Patient Leakage</span>
         </div>
 
-        <!-- Subject Leakage Comparison Explanation -->
         <div class="audit-card">
-          <h3><i class="fa-solid fa-shield-cat"></i> Why Cross-Subject Validation Matters</h3>
+          <h3><i class="fa-solid fa-shield-cat"></i> Patient Subject Isolation</h3>
           <p>
-            Standard K-Fold randomly assigns images across splits. When a patient has multiple X-ray scans, their distinct anatomical features appear in both training and test sets—causing <strong>Data Leakage</strong> and inflated validation scores.
+            Patient Subject IDs (<code id="subject-prefix-code">person{ID}</code>) are grouped strictly with <code>StratifiedGroupKFold</code>, ensuring zero subject overlap ($train \cap val = \emptyset$).
           </p>
           <div class="split-comparison">
             <div class="split-box bad-split">
               <i class="fa-solid fa-circle-xmark text-danger"></i>
-              <strong>Random K-Fold (Baseline)</strong>
-              <span>Same Patient images split across Train & Test $\rightarrow$ Leakage Risk!</span>
+              <strong>Random Split</strong>
+              <span>Same Patient scans split $\rightarrow$ Data Leakage!</span>
             </div>
             <div class="split-box good-split">
               <i class="fa-solid fa-circle-check text-success"></i>
-              <strong>Stratified GroupKFold (Our Project)</strong>
-              <span>Strict Patient ID grouping $\rightarrow$ Zero Overlap ($train \\cap val = \\emptyset$)</span>
+              <strong>Cross-Subject CV</strong>
+              <span>Strict Patient Isolation ($\text{Train} \cap \text{Val} = \emptyset$)</span>
             </div>
           </div>
         </div>
 
-        <!-- 5-Fold Cross-Validation Metrics Table -->
+        <!-- 5-Fold Metrics Table -->
         <div class="cv-table-container">
-          <h3><i class="fa-solid fa-table-list"></i> Per-Fold Cross-Subject Performance</h3>
+          <h3><i class="fa-solid fa-table-list"></i> Per-Fold Cross-Subject Metrics</h3>
           <table class="cv-table">
             <thead>
               <tr>
@@ -195,69 +195,56 @@
               </tr>
             </thead>
             <tbody id="cv-table-body">
-              <tr>
-                <td>Fold 1</td>
-                <td>12 Patients</td>
-                <td>95.8%</td>
-                <td>0.962</td>
-                <td>97.5%</td>
-                <td>93.8%</td>
-              </tr>
-              <tr>
-                <td>Fold 2</td>
-                <td>12 Patients</td>
-                <td>96.2%</td>
-                <td>0.966</td>
-                <td>98.0%</td>
-                <td>94.2%</td>
-              </tr>
-              <tr>
-                <td>Fold 3</td>
-                <td>12 Patients</td>
-                <td>95.0%</td>
-                <td>0.954</td>
-                <td>96.5%</td>
-                <td>93.0%</td>
-              </tr>
-              <tr>
-                <td>Fold 4</td>
-                <td>12 Patients</td>
-                <td>96.5%</td>
-                <td>0.969</td>
-                <td>97.8%</td>
-                <td>95.0%</td>
-              </tr>
-              <tr>
-                <td>Fold 5</td>
-                <td>12 Patients</td>
-                <td>95.5%</td>
-                <td>0.960</td>
-                <td>96.3%</td>
-                <td>94.5%</td>
-              </tr>
+              <!-- Rendered via JS -->
             </tbody>
           </table>
-        </div>
-
-        <!-- CNN Architecture Summary -->
-        <div class="arch-summary">
-          <h3><i class="fa-solid fa-cubes"></i> 5-Block CNN Architecture (madz2000 Baseline)</h3>
-          <div class="arch-pills">
-            <span class="arch-pill">Conv2D 32</span> $\rightarrow$
-            <span class="arch-pill">Conv2D 64</span> $\rightarrow$
-            <span class="arch-pill">Conv2D 64</span> $\rightarrow$
-            <span class="arch-pill">Conv2D 128</span> $\rightarrow$
-            <span class="arch-pill">Conv2D 256</span> $\rightarrow$
-            <span class="arch-pill">Dense 128</span> $\rightarrow$
-            <span class="arch-pill highlight">Sigmoid</span>
-          </div>
         </div>
       </div>
     </main>
 
+    <!-- Modality Comparison View (Hidden by Default) -->
+    <section class="comparison-view hidden" id="comparison-view">
+      <div class="panel glass-panel">
+        <div class="panel-header">
+          <h2><i class="fa-solid fa-code-compare"></i> Diagnostic Performance Comparison: Chest X-Ray vs. CT Scan</h2>
+          <span class="badge-tag">Multimodal AI Benchmark</span>
+        </div>
+
+        <div class="comparison-grid">
+          <!-- Comparison Table -->
+          <div class="comparison-card">
+            <h3><i class="fa-solid fa-scale-balanced"></i> Benchmark Metric Comparison</h3>
+            <table class="cv-table comparison-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Chest X-Ray</th>
+                  <th>Chest CT Scan</th>
+                  <th>Superior Modality</th>
+                </tr>
+              </thead>
+              <tbody id="comparison-table-body">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Clinical Insights -->
+          <div class="comparison-card clinical-card">
+            <h3><i class="fa-solid fa-stethoscope"></i> Clinical Trade-Offs & Key Findings</h3>
+            <ul class="insights-list" id="clinical-insights-list">
+              <li><i class="fa-solid fa-circle-check text-success"></i> <strong>Chest CT Scans</strong> provide 3D axial spatial resolution enabling detection of early Ground-Glass Opacities (GGO) prior to X-Ray visibility.</li>
+              <li><i class="fa-solid fa-circle-check text-success"></i> <strong>Chest X-Rays</strong> serve as the optimal first-line low-cost screening modality with zero 3D radiation overhead.</li>
+              <li><i class="fa-solid fa-circle-check text-success"></i> <strong>Cross-Subject Validation</strong> eliminates patient anatomical memorization across both imaging modalities.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Footer -->
     <footer class="app-footer">
-      <p>Pneumonia Detection using CNN with Cross-Subject Validation & Best Prediction Ensemble | Clinical AI System</p>
+      <p>Multimodal Pneumonia AI Detection System | Chest X-Ray vs. CT Scan Cross-Subject Validation & Ensemble Pipeline</p>
     </footer>
   </div>
 

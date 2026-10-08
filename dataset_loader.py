@@ -2,68 +2,80 @@ import os
 import re
 import random
 import numpy as np
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageEnhance
 
 class PneumoniaDatasetLoader:
     """
-    Dataset loader for Chest X-Ray Pneumonia detection with Patient Subject Grouping.
-    Extracts Subject IDs (e.g. 'person100' from 'person100_bacteria_189.jpeg') to enable
-    strict Cross-Subject Validation (GroupKFold) with zero patient data leakage.
+    Multimodal Dataset Loader for Chest X-Ray & CT Scan Pneumonia Detection.
+    Extracts Subject IDs (e.g. 'person19' for X-Ray, 'ct_patient12' for CT Scans)
+    to enable strict Cross-Subject Validation (GroupKFold) with zero patient data leakage.
     """
     def __init__(self, img_size=(150, 150)):
         self.img_size = img_size
 
     @staticmethod
-    def extract_subject_id(filename):
+    def extract_subject_id(filename, modality='xray'):
         """
         Parses patient/subject ID from filename.
         e.g., 'person19_bacteria_62.jpeg' -> 'person19'
-              'person100_normal_1.jpeg' -> 'person100'
+              'ct_patient12_pneumonia_4.jpeg' -> 'ct_patient12'
               'NORMAL2-IM-0381-0001.jpeg' -> 'IM-0381'
         """
         base = os.path.basename(filename)
+        
+        # Match ct_patient pattern
+        match_ct = re.search(r'(ct_patient\d+|patient\d+)', base, re.IGNORECASE)
+        if match_ct:
+            return match_ct.group(1).lower()
+
         # Match person pattern like person123
-        match = re.search(r'(person\d+)', base, re.IGNORECASE)
-        if match:
-            return match.group(1).lower()
+        match_person = re.search(r'(person\d+)', base, re.IGNORECASE)
+        if match_person:
+            return match_person.group(1).lower()
         
         # Match IM pattern
         match_im = re.search(r'(IM-\d+)', base)
         if match_im:
             return match_im.group(1)
 
-        # Fallback to hash prefix if no standard patient pattern
+        # Fallback hash
+        prefix = 'ct_subj' if modality == 'ct_scan' else 'xray_subj'
         clean_name = re.sub(r'[\d_\.\-\s]+', '', base)
-        return f"subject_{hash(clean_name) % 1000:03d}"
+        return f"{prefix}_{hash(clean_name) % 1000:03d}"
 
-    def generate_synthetic_dataset(self, base_dir, num_subjects=50, images_per_subject=6):
+    def generate_synthetic_dataset(self, base_dir, modality='xray', num_subjects=50, images_per_subject=6):
         """
-        Generates a synthetic chest X-ray dataset structured by patient subject IDs
-        if raw Kaggle dataset is not locally present.
+        Generates synthetic Chest X-Ray or CT Scan multi-patient image dataset
+        if local raw Kaggle dataset is not present in data_dir.
         """
-        os.makedirs(os.path.join(base_dir, 'NORMAL'), exist_ok=True)
-        os.makedirs(os.path.join(base_dir, 'PNEUMONIA'), exist_ok=True)
+        mod_dir = os.path.join(base_dir, modality)
+        os.makedirs(os.path.join(mod_dir, 'NORMAL'), exist_ok=True)
+        os.makedirs(os.path.join(mod_dir, 'PNEUMONIA'), exist_ok=True)
 
         records = []
-        np.random.seed(42)
-        random.seed(42)
+        seed = 42 if modality == 'xray' else 99
+        np.random.seed(seed)
+        random.seed(seed)
+
+        prefix = 'person' if modality == 'xray' else 'ct_patient'
 
         for i in range(1, num_subjects + 1):
-            subject_id = f"person{i}"
-            # Assign label to subject (70% pneumonia, 30% normal to match dataset balance)
-            is_pneumonia = i % 3 != 0  
+            subject_id = f"{prefix}{i}"
+            is_pneumonia = i % 3 != 0 # 66% pneumonia, 33% normal
             category = 'PNEUMONIA' if is_pneumonia else 'NORMAL'
             
-            # Subject specific baseline intensity & texture characteristics
-            base_intensity = np.random.randint(90, 140)
-            lung_opacity = 0.85 if is_pneumonia else 0.45
+            base_intensity = np.random.randint(90, 140) if modality == 'xray' else np.random.randint(40, 80)
+            opacity_scale = 0.85 if is_pneumonia else 0.40
 
             for img_idx in range(1, images_per_subject + 1):
                 fname = f"{subject_id}_{category.lower()}_{img_idx}.jpeg"
-                fpath = os.path.join(base_dir, category, fname)
+                fpath = os.path.join(mod_dir, category, fname)
 
-                # Create synthetic X-ray image (150x150) with synthetic lung structures & opacities
-                img_arr = self._create_synthetic_xray(base_intensity, lung_opacity, is_pneumonia)
+                if modality == 'ct_scan':
+                    img_arr = self._create_synthetic_ct_scan(base_intensity, opacity_scale, is_pneumonia)
+                else:
+                    img_arr = self._create_synthetic_xray(base_intensity, opacity_scale, is_pneumonia)
+
                 img = Image.fromarray(img_arr)
                 img.save(fpath, format='JPEG', quality=90)
 
@@ -72,88 +84,105 @@ class PneumoniaDatasetLoader:
                     'filename': fname,
                     'label': 1 if is_pneumonia else 0,
                     'category': category,
-                    'subject_id': subject_id
+                    'subject_id': subject_id,
+                    'modality': modality
                 })
 
-        print(f"[DatasetLoader] Generated synthetic dataset at {base_dir} with {len(records)} images across {num_subjects} subjects.")
+        print(f"[DatasetLoader] Synthesized {len(records)} {modality.upper()} images across {num_subjects} subjects in {mod_dir}")
         return records
 
     def _create_synthetic_xray(self, base_intensity, lung_opacity, is_pneumonia):
-        """Creates realistic synthetic Chest X-Ray matrix."""
+        """Creates synthetic projection Chest X-Ray matrix."""
         H, W = self.img_size
         img = np.full((H, W), base_intensity, dtype=np.float32)
 
-        # Rib cage & spine structure simulation
         y, x = np.ogrid[:H, :W]
         center_x = W / 2.0
         spine = np.exp(-((x - center_x) ** 2) / 30.0) * 50.0
         img += spine
 
-        # Left & Right lung fields (darker low density regions)
         left_lung = np.exp(-(((x - W*0.3)**2)/(W*2.5) + ((y - H*0.5)**2)/(H*3.5))) * 70.0
         right_lung = np.exp(-(((x - W*0.7)**2)/(W*2.5) + ((y - H*0.5)**2)/(H*3.5))) * 70.0
         img -= (left_lung + right_lung)
 
-        # Pneumonia opacity infiltrates (white patchy consolidations)
         if is_pneumonia:
-            opacity_patch1 = np.exp(-(((x - W*0.35)**2)/450.0 + ((y - H*0.55)**2)/450.0)) * (100.0 * lung_opacity)
-            opacity_patch2 = np.exp(-(((x - W*0.65)**2)/350.0 + ((y - H*0.45)**2)/350.0)) * (90.0 * lung_opacity)
-            img += (opacity_patch1 + opacity_patch2)
+            patch1 = np.exp(-(((x - W*0.35)**2)/450.0 + ((y - H*0.55)**2)/450.0)) * (100.0 * lung_opacity)
+            patch2 = np.exp(-(((x - W*0.65)**2)/350.0 + ((y - H*0.45)**2)/350.0)) * (90.0 * lung_opacity)
+            img += (patch1 + patch2)
 
-        # Noise & smoothing
-        noise = np.random.normal(0, 5.0, (H, W))
-        img = np.clip(img + noise, 0, 255).astype(np.uint8)
-        return img
+        noise = np.random.normal(0, 4.0, (H, W))
+        return np.clip(img + noise, 0, 255).astype(np.uint8)
 
-    def load_dataset_index(self, data_dir):
-        """
-        Scans data_dir for NORMAL and PNEUMONIA folders, parses subject IDs.
-        """
+    def _create_synthetic_ct_scan(self, base_intensity, opacity_scale, is_pneumonia):
+        """Creates synthetic axial cross-sectional CT Scan slice matrix."""
+        H, W = self.img_size
+        y, x = np.ogrid[:H, :W]
+        cx, cy = W / 2.0, H / 2.0
+
+        # Thoracic body contour (bright subcutaneous tissue & ribs)
+        dist = np.sqrt((x - cx)**2 + (y - cy)**2)
+        body = (dist < (W * 0.44)).astype(np.float32) * 160.0
+
+        # Low density lung parenchyma (dark air regions)
+        left_lung_ct = (((x - W*0.35)**2)/(W*1.8)**2 + ((y - cy)**2)/(H*2.2)**2) < 0.08
+        right_lung_ct = (((x - W*0.65)**2)/(W*1.8)**2 + ((y - cy)**2)/(H*2.2)**2) < 0.08
+
+        img = body
+        img[left_lung_ct | right_lung_ct] = 25.0 # Low attenuation lung air
+
+        # Ground-Glass Opacities (GGO) & Peripheral Consolidations in CT
+        if is_pneumonia:
+            ggo1 = np.exp(-(((x - W*0.32)**2)/220.0 + ((y - H*0.58)**2)/220.0)) * (140.0 * opacity_scale)
+            ggo2 = np.exp(-(((x - W*0.68)**2)/180.0 + ((y - H*0.52)**2)/180.0)) * (130.0 * opacity_scale)
+            img += (ggo1 + ggo2)
+
+        # Subcutaneous fat background
+        img[dist >= (W * 0.44)] = 10.0
+        noise = np.random.normal(0, 3.0, (H, W))
+        return np.clip(img + noise, 0, 255).astype(np.uint8)
+
+    def load_dataset_index(self, data_dir, modality='xray'):
+        """Scans dataset directory for NORMAL and PNEUMONIA folders for specified modality."""
         records = []
+        mod_dir = os.path.join(data_dir, modality) if os.path.exists(os.path.join(data_dir, modality)) else data_dir
+
         for category in ['NORMAL', 'PNEUMONIA']:
-            cat_dir = os.path.join(data_dir, category)
+            cat_dir = os.path.join(mod_dir, category)
             if not os.path.exists(cat_dir):
                 continue
             
             for root, _, files in os.walk(cat_dir):
                 for f in files:
-                    if f.lower().endswith(('.png', '.jpg', '.jpeg')):
+                    if f.lower().endswith(('.png', '.jpg', '.jpeg', '.dcm')):
                         fpath = os.path.join(root, f)
-                        subj = self.extract_subject_id(f)
+                        subj = self.extract_subject_id(f, modality=modality)
                         records.append({
                             'filepath': fpath,
                             'filename': f,
                             'label': 1 if category == 'PNEUMONIA' else 0,
                             'category': category,
-                            'subject_id': subj
+                            'subject_id': subj,
+                            'modality': modality
                         })
         return records
 
     def preprocess_image(self, img_path, augment=False):
-        """
-        Loads image, resizes to target size, applies optional data augmentation,
-        and normalizes pixel values to [0, 1].
-        """
+        """Loads image, resizes, normalizes to [0, 1] for model input."""
         try:
-            img = Image.open(img_path).convert('L') # Convert to grayscale
+            img = Image.open(img_path).convert('L')
         except Exception:
-            # Fallback black image if file unreadable
-            img = Image.new('L', self.img_size, color=128)
+            img = Image.new('L', self.img_size, color=64)
 
         img = img.resize(self.img_size, Image.Resampling.BILINEAR)
 
         if augment:
-            # Random horizontal flip
             if random.random() > 0.5:
                 img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-            # Random rotation (-10 to +10 degrees)
-            angle = random.uniform(-10, 10)
+            angle = random.uniform(-8, 8)
             img = img.rotate(angle)
-            # Random brightness shift
             enhancer = ImageEnhance.Brightness(img)
-            img = enhancer.enhance(random.uniform(0.85, 1.15))
+            img = enhancer.enhance(random.uniform(0.88, 1.12))
 
         arr = np.array(img, dtype=np.float32) / 255.0
-        # Expand channel dimension (1, H, W) or (H, W, 1)
-        arr = np.expand_dims(arr, axis=0) # (1, H, W) for PyTorch format
+        arr = np.expand_dims(arr, axis=0) # (1, H, W)
         return arr

@@ -10,6 +10,7 @@
   --accent-emerald: #00e676;
   --accent-amber: #ffb300;
   --accent-rose: #ff5252;
+  --accent-purple: #b388ff;
 
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -45,6 +46,8 @@ body {
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border-glass);
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .logo-group {
@@ -88,31 +91,45 @@ body {
   color: var(--text-muted);
 }
 
-.header-badges {
+/* Modality Navigation Tabs */
+.modality-tabs {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border-glass);
 }
 
-.status-badge {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
+.modality-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 600;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
-.badge-success {
-  background: rgba(0, 230, 118, 0.12);
-  color: var(--accent-emerald);
-  border: 1px solid rgba(0, 230, 118, 0.3);
+.modality-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.badge-info {
-  background: rgba(79, 172, 254, 0.12);
-  color: var(--primary-indigo);
-  border: 1px solid rgba(79, 172, 254, 0.3);
+.modality-btn.active {
+  background: linear-gradient(135deg, var(--primary-cyan), var(--primary-indigo));
+  color: #080c14;
+  box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+}
+
+.modality-btn.comparison-tab.active {
+  background: linear-gradient(135deg, var(--accent-purple), var(--primary-indigo));
+  color: #fff;
 }
 
 /* Metrics Banner */
@@ -148,7 +165,6 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  background: rgba(255, 255, 255, 0.05);
 }
 
 .glow-cyan .metric-icon { color: var(--primary-cyan); background: rgba(0, 242, 254, 0.1); }
@@ -323,7 +339,7 @@ body {
   justify-content: center;
 }
 
-#xray-canvas {
+#medical-canvas {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -552,31 +568,51 @@ body {
   background: rgba(255, 255, 255, 0.03);
 }
 
-/* Arch Summary */
-.arch-summary h3 {
-  font-size: 13px;
-  margin-bottom: 10px;
+/* Comparison View */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-.arch-pills {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
+@media (max-width: 850px) {
+  .comparison-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.arch-pill {
-  background: rgba(255, 255, 255, 0.06);
-  padding: 4px 10px;
-  border-radius: 6px;
+.comparison-card {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 20px;
+  border-radius: 16px;
   border: 1px solid var(--border-glass);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.arch-pill.highlight {
-  background: rgba(0, 242, 254, 0.15);
-  border-color: var(--primary-cyan);
-  color: var(--primary-cyan);
+.comparison-card h3 {
+  font-size: 15px;
+}
+
+.winner-tag {
+  color: var(--accent-emerald);
+  font-weight: 700;
+}
+
+.insights-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.insights-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
 }
 
 /* Footer */
